@@ -1,0 +1,386 @@
+<!-- build time:Wed Mar 25 2020 17:05:44 GMT+0800 (GMT+08:00) --><!DOCTYPE html><script type="text/javascript" src="/js/src/dytitle.js"></script><html class="theme-next pisces use-motion" lang="zh-CN"><head><meta charset="UTF-8"><meta name="generator" content="Hexo 3.9.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2"><meta name="theme-color" content="#222"><meta http-equiv="X-UA-Compatible" content="IE=edge"><link rel="apple-touch-icon" sizes="180x180" href="/images/op.jpg?v=7.3.0"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0"><link rel="mask-icon" href="/images/op.svg?v=7.3.0" color="#222"><link rel="stylesheet" href="/css/main.css?v=7.3.0"><link rel="stylesheet" href="fonts.useso.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext"><link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0"><link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css"><link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css"><link rel="stylesheet" href="/lib/pace/pace-theme-flash.min.css?v=1.0.2"><script src="/lib/pace/pace.min.js?v=1.0.2"></script><script id="hexo-configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Pisces",version:"7.3.0",exturl:!1,sidebar:{position:"left",display:"post",offset:12,onmobile:!0},back2top:{enable:!0,sidebar:!1,scrollpercent:!0},save_scroll:!1,copycode:{enable:!0,show_result:!0,style:"flat"},fancybox:!0,mediumzoom:!1,lazyload:!1,pangu:!1,algolia:{applicationID:"",apiKey:"",indexName:"",hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}},localsearch:{enable:!0,trigger:"auto",top_n_per_article:1,unescape:!1,preload:!1},path:"search.xml",motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}},translation:{copy_button:"复制",copy_success:"复制成功",copy_failure:"复制失败"}}</script><meta name="description" content="摘 要：本手册详细介绍了Go语言单元测试方法，包括功能测试、基准测试用例的编写和执行，内存分配、CPU占用、协程阻塞等统计信息的查看，以及如何进行并发测试、设置常用测试选项以及不同场景下的测试方法等，并介绍了几种常用的第三方测试框架。"><meta name="keywords" content="编码,Golang"><meta property="og:type" content="article"><meta property="og:title" content="Golang测试总结"><meta property="og:url" content="https://ciryu.github.io/blog/Golang-test.html"><meta property="og:site_name" content="Abel&#39;s Blog"><meta property="og:description" content="摘 要：本手册详细介绍了Go语言单元测试方法，包括功能测试、基准测试用例的编写和执行，内存分配、CPU占用、协程阻塞等统计信息的查看，以及如何进行并发测试、设置常用测试选项以及不同场景下的测试方法等，并介绍了几种常用的第三方测试框架。"><meta property="og:locale" content="zh-CN"><meta property="og:updated_time" content="2019-12-14T13:10:23.949Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Golang测试总结"><meta name="twitter:description" content="摘 要：本手册详细介绍了Go语言单元测试方法，包括功能测试、基准测试用例的编写和执行，内存分配、CPU占用、协程阻塞等统计信息的查看，以及如何进行并发测试、设置常用测试选项以及不同场景下的测试方法等，并介绍了几种常用的第三方测试框架。"><link rel="alternate" href="/atom.xml" title="Abel's Blog" type="application/atom+xml"><link rel="canonical" href="https://ciryu.github.io/blog/Golang-test"><script id="page-configurations">CONFIG.page={sidebar:"",isHome:!1,isPost:!0,isPage:!1,isArchive:!1}</script><title>Golang测试总结 | Abel's Blog</title><noscript><style>.sidebar-inner,.use-motion .brand,.use-motion .collection-title,.use-motion .comments,.use-motion .menu-item,.use-motion .motion-element,.use-motion .pagination,.use-motion .post-block,.use-motion .post-body,.use-motion .post-header{opacity:initial}.use-motion .logo,.use-motion .site-subtitle,.use-motion .site-title{opacity:initial;top:initial}.use-motion .logo-line-before i{left:initial}.use-motion .logo-line-after i{right:initial}</style></noscript></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN"><div class="container sidebar-position-left"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">Abel's Blog</span> <span class="logo-line-after"><i></i></span></a></div><p class="site-subtitle">一次把事情做好</p></div><div class="site-nav-toggle"><button aria-label="切换导航栏"><span class="btn-bar"></span> <span class="btn-bar"></span> <span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br>归档</a></li><li class="menu-item menu-item-a-word"><a href="/a-word/" rel="section"><i class="menu-item-icon fa fa-fw fa-align-center"></i><br>一言</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br>搜索</a></li></ul></nav><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i> </span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"><input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content page-post-detail"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><div class="post-block"><link itemprop="mainEntityOfPage" href="https://ciryu.github.io/blog/Golang-test.html"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="Abel"><meta itemprop="description" content="我要，最狂的风，和最静的海"><meta itemprop="image" content="/images/avatar.jpg"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Abel's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">Golang测试总结</h1><div class="post-meta"><span class="post-meta-item"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i> </span><span class="post-meta-item-text">发表于</span> <time title="创建时间：2019-12-10 23:25:24" itemprop="dateCreated datePublished" datetime="2019-12-10T23:25:24+08:00">2019-12-10</time> </span><span class="post-meta-item"><span class="post-meta-item-icon"><i class="fa fa-calendar-check-o"></i> </span><span class="post-meta-item-text">更新于</span> <time title="修改时间：2019-12-14 21:10:23" itemprop="dateModified" datetime="2019-12-14T21:10:23+08:00">2019-12-14</time> </span><span class="post-meta-item"><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i> </span><span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/编码/" itemprop="url" rel="index"><span itemprop="name">编码</span></a></span> ， <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/编码/Golang/" itemprop="url" rel="index"><span itemprop="name">Golang</span></a></span> </span><span class="post-meta-item" title="阅读次数"><span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="post-meta-item-text">阅读次数：</span> <span class="busuanzi-value" id="busuanzi_value_page_pv"></span></span><br><span class="post-meta-item" title="本文字数"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i> </span><span class="post-meta-item-text">本文字数：</span> <span>15k</span> </span><span class="post-meta-item" title="阅读时长"><span class="post-meta-item-icon"><i class="fa fa-clock-o"></i> </span><span class="post-meta-item-text">阅读时长 &asymp;</span> <span>14 分钟</span></span></div></header><div class="post-body" itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><h1 id="摘-要："><a href="#摘-要：" class="headerlink" title="摘  要："></a>摘 要：</h1><p>本手册详细介绍了Go语言单元测试方法，包括功能测试、基准测试用例的编写和执行，内存分配、CPU占用、协程阻塞等统计信息的查看，以及如何进行并发测试、设置常用测试选项以及不同场景下的测试方法等，并介绍了几种常用的第三方测试框架。</p><a id="more"></a><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>1、函数、方法实现代码比较复杂，函数依赖比较多，层层调用。<br>2、函数需要环境和配置的支持，如获取linux环境的文件路径，解析配置文件、访问数据库以及http请求等，都需预设测试条件。<br>3、函数涉及到编码解码、加解密、认证等安全保护，这部分mock比较困难。<br>4、集成测试，涉及多个组件的交互</p><h1 id="Go内置单元测试框架Testing"><a href="#Go内置单元测试框架Testing" class="headerlink" title="Go内置单元测试框架Testing"></a>Go内置单元测试框架Testing</h1><h2 id="命名约定"><a href="#命名约定" class="headerlink" title="命名约定"></a>命名约定</h2><p>测试代码位于以xxx_test.go结尾的源文件中，一般与源码在同一个package中。位于同一个package中的主要原因是：测试可以访问package中不可导出的变量，方法等元素。也可单独创建一个测试package，以package xxx_test命名，可import依赖包，用于涉及多个组件交互的集成测试，可以更灵活编写测试用例：</p><pre><code>package bytes_test
+import (
+&quot;bytes&quot;
+&quot;io&quot;
+...
+)</code></pre><p>测试函数命名规则：<br>•以Test开头的功能测试函数：func TestXxx(*testing.T)<br>•以Benchmark开头的性能测试函数： func BenchmarkXxx(b *testing.B)<br>•以Example开头的样例代码</p><pre><code>func ExampleHello() {
+hl := hello()
+fmt.Println(hl)
+// Output: hello.
+}</code></pre><p>示例函数无需接收参数，但需要使用注释的Output:标记说明示例函数的输出值，未指定Output:标记或输出值为空的示例函数不会被执行。go doc工具会解析示例函数的函数体作为对应包/函数/类型/类型方法的用法。<br>示例函数需要归属于某个包/函数/类型/类型的方法，具体命名规则如下：<br>func Example() { … } // 包的示例函数<br>func ExampleF() { … } // 函数F的示例函数<br>func ExampleT() { … } // 类型T的示例函数<br>func ExampleT_M() { … } // 类型T的M方法的示例函数</p><p>// 多示例函数 需要跟下划线加小写字母开头的后缀<br>func Example_suffix() { … }<br>func ExampleF_suffix() { … }<br>func ExampleT_suffix() { … }<br>func ExampleT_M_suffix() { … }</p><p>测试结果可以用t.fatal，t.Error，t.Fail等来标注，需要注意的是，t.fatal会立即中断后续测试代码的执行，t.error则会继续执行后续的测试代码。在实际应用中，一个小的测试错误不应该终止整个测试，因此推荐使用t.error:</p><pre><code>// Error is equivalent to Log followed by Fail.
+func (c *common) Error(args ...interface{}) {
+c.log(fmt.Sprintln(args...))
+c.Fail()
+}
+
+// Errorf is equivalent to Logf followed by Fail.
+func (c *common) Errorf(format string, args ...interface{}) {
+c.log(fmt.Sprintf(format, args...))
+c.Fail() //继续执行后续测试代码
+}
+
+// Fatal is equivalent to Log followed by FailNow.
+func (c *common) Fatal(args ...interface{}) {
+c.log(fmt.Sprintln(args...))
+c.FailNow() //立即返回
+}
+
+// Fatalf is equivalent to Logf followed by FailNow.
+func (c *common) Fatalf(format string, args ...interface{}) {
+c.log(fmt.Sprintf(format, args...))
+c.FailNow()
+}</code></pre><h2 id="测试示例"><a href="#测试示例" class="headerlink" title="测试示例"></a>测试示例</h2><p>被测试代码为demo.go，相应的测试代码为demo_test.go，均在demo包下<br>demo.go文件内容如下：</p><pre><code>package demo
+import (
+&quot;fmt&quot;
+) 
+func multiply(a, b int) int {
+time.Sleep(time.Millisecond)
+return a * b
+}
+func divide(a, b int) (int, error) {
+if b == 0 {
+return 0, fmt.Errorf(&quot;divide by zero&quot;)
+} else {
+ time.Sleep(time.Millisecond)
+return a / b, nil
+}
+}
+// 该函数未被测试到
+func untest() {
+fmt.Println(&quot;I am not tested&quot;)
+}</code></pre><p>demo_test.go文件内容如下：</p><pre><code>package demo // 与被测文件放在同一个包中，方便测试非导出函数
+import (
+&quot;testing&quot; // 导入测试包
+) 
+// 功能测试函数名为TestXxx，Test之后的第一个字符必须是大写字母
+// 入参类型必须为*testing.T
+func TestMultiply(t *testing.T) {
+t.Log(&quot;Test Multiply&quot;) // -v选项才输出
+a, b := 2, 3
+result := multiply(a, b)
+if result != 6 {
+t.FailNow() // 失败并停止执行当前测试函数
+}
+}
+// 性能测试函数名为BenchmarkXxx，Benchmark之后的第一个字符必须是大写字母
+// 入参类型必须为*testing.B
+func BenchmarkMultiply(b *testing.B) {
+// 使用b.N作为循环次数，测试调度器会自动计算循环次数
+// 循环次数 * 函数平均执行时间 = benchtime
+for i := 0; i &lt; b.N; i++ {
+multiply(10, 3)
+}
+} 
+func TestDivideNormal(t *testing.T) {
+a, b := 4, 2
+result, err := divide(a, b)
+if err != nil {
+t.Error(&quot;should not return error&quot;) // 记录失败，继续执行当前测试函数
+}
+if result != 2 {
+ t.Errorf(&quot;result should be 2, not %d&quot;, result)
+}  
+} 
+func TestDivideZero(t *testing.T) {
+a, b := 2, 0
+_, err := divide(a, b)
+if (err == nil) { // 无需进行后续检查
+t.Fatal(&quot;should return error&quot;) // 记录失败，停止执行当前测试函数
+}
+if err.Error() != &quot;divide by zero&quot; {
+t.Error(&quot;error(divide by zero) expected, not&quot;, err)
+}
+}
+
+func BenchmarkDivide(b *testing.B) {
+for i := 0; i &lt; b.N; i++ {
+divide(10, 3)
+}
+}</code></pre><p>注：</p><ol><li>Go语言自带功能测试、性能测试、覆盖率测试框架。</li><li>测试代码必须保存在以*_test.go命名的测试文件中，执行go build编译时，不会编译测试文件。</li><li>功能测试函数命名符合TestXxx格式，Xxx为测试用例名，其第一个字母必须大写。</li><li>性能测试函数命名符合BenchmarkXxx格式，Xxx为测试用例名，其第一个字母必须大写。</li><li>性能测试使用入参的成员N（对应示例代码b.N）作为循环测试，调度器会根据设置的benchtime值自动计算循环次数。<br>运行go test进行测试：<blockquote><p>go test</p></blockquote></li></ol><p>默认不会进行性能测试，要进行性能测试，需要增加-bench选项：</p><blockquote><p>go test -bench .</p></blockquote><p>注：.匹配任何字符，”-bench .”执行所有性能测试。<br>默认不会输出测试详细信息（用例执行、日志输出等）如果需要输出详细信息，需要增加-v选项：</p><blockquote><p>go test -v</p></blockquote><p>执行”Divide”相关的功能测试和性能测试：</p><blockquote><p>go test -v -run Divide -bench Divide</p></blockquote><h2 id="测试命令使用"><a href="#测试命令使用" class="headerlink" title="测试命令使用"></a>测试命令使用</h2><p>测试命令：go test [-c] [-i] [build and test flags] [packages] [flags for test binary]<br>相关帮助可运行go help test查看。</p><p>-c 仅编译，不执行测试<br>-i 安装测试包依赖的package，但是不运行测试<br>-bench regexp 执行正则表达式对应的性能测试用例，默认不执行性能测试用例<br>-benchmem 打印性能测试的内存分配统计信息<br>-benchtime t 性能测试运行的时间，缺省1秒，调度器会运行足够多次循环以达到这个时间 -benchtime 2s<br>-benchtime 10ms<br>-blockprofile block.out 在所有测试完成时输出协程阻塞统计文件<br>-blockprofilerate n 最小阻塞时间（纳秒），超过这个时间的阻塞事件将被记录，默认为1，即任何阻塞事件都记录<br>-cover 开启覆盖率分析<br>-covermode set|count|atomic 设置覆盖率分析模式<br>set：语句是否运行<br>count：语句运行次数<br>atomic：同count，但保证多线程安全<br>-coverpkg pkg1,pkg2,pkg3 对指定的包进行覆盖率分析，默认只对测试的包进行覆盖率分析（对测试包依赖的包不进行分析）<br>-coverprofile cover.out 输出测试覆盖统计分析文件<br>-cpu 1,2,4 程序运行使用的cpu个数（系统线程数）列表，默认为GOMAXPROCS<br>-cpuprofile cpu.out 输出cpu使用统计文件<br>-memprofile mem.out 输出内存分配用统计文件<br>-memprofilerate n 最小分配大小（字节），超过这个大小的内存分配将被记录，默认为512 * 1024，如果设置成1，任何内存分配都会记录。<br>-outputdir directory 设置输出目录，默认为go test执行所在目录<br>-parallel n 并发执行调用了t.Parallel的测试函数，n为同时执行测试函数的最大个数，默认值为GOMAXPROCS<br>-run regexp 运行正则表达式匹配的功能测试<br>-short 通知耗时测试缩短运行时间<br>-timeout t 测试执行的超时时间，超过此时间则panic -timeout 2m30s<br>-v 输出测试运行的详细信息，即使成功也会输出相关信息</p><p>注：<br>1.关于build flags，调用go help build，这些是编译运行过程中需要使用到的参数，一般设置为空。<br>2.关于packages，调用go help packages，这些是关于包的管理，一般设置为空。<br>3.关于flags for test binary，调用go help testflag查看，这些是go test过程中经常使用到的参数，如上表格从-bench regexp开始的选项都是flags for test binary。</p><p>注：<br>1.带f后缀的函数与不带f后缀函数的功能相同，只是增加了格式化输出字符串。<br>2.testing.T和testing.B均有如上这些函数。</p><h2 id="测试类型"><a href="#测试类型" class="headerlink" title="测试类型"></a>测试类型</h2><h3 id="功能测试"><a href="#功能测试" class="headerlink" title="功能测试"></a>功能测试</h3><p>功能测试函数以*testing.T类型为单一参数t，testing.T类型用来管理测试状态和格式化测试日志。测试日志在测试执行过程中积累，完成后输出到标准错误输出。<br>示例：<br>测试预期不符，使用t.Error()或t.Errorf()记录日志并标记测试失败</p><pre><code>func TestToTitle(t *testing.T) {
+for _, tt := range ToTitleTests {
+ if s := string(ToTitle([]byte(tt.in))); s != tt.out {
+ t.Errorf(&quot;ToTitle(%q) = %q, want %q&quot;, tt.in, s, tt.out)
+}
+    }
+}</code></pre><p>测试预期不符，使用t.Fatal()和t.Fatalf()跳出该测试函数</p><pre><code>func TestUnreadByte(t *testing.T) {
+b := new(Buffer)
+b.WriteString(&quot;abcdefghijklmnopqrstuvwxyz&quot;)
+
+_, err := b.ReadBytes(&apos;m&apos;)
+if err != nil {
+ t.Fatalf(&quot;ReadBytes: %v&quot;, err)
+}
+...
+}</code></pre><p>记录日志， 使用t.Log()和t.Logf()</p><pre><code>func TestFowler(t *testing.T) {
+files, err := filepath.Glob(&quot;testdata/*.dat&quot;)
+if err != nil {
+ t.Fatal(err)
+}
+for _, file := range files {
+t.Log(file)
+testFowler(t, file)
+}
+}</code></pre><p>跳过某条测试用例，使用t.Skip()和t.Skipf()</p><pre><code>func TestZip64(t *testing.T) { 
+if testing.Short() {
+t.Skip(&quot;slow test; skipping&quot;)
+}
+const size = 1 &lt;&lt; 32 // before the &quot;END\n&quot; part
+buf := testZip64(t, size)
+testZip64DirectoryRecordLength(buf, t)
+}</code></pre><p>并发执行测试用例，使用t.Parallel()标记</p><pre><code>func TestStackGrowth(t *testing.T) {
+t.Parallel()
+var wg sync.WaitGroup
+
+// in a normal goroutine
+wg.Add(1)
+go func() {
+defer wg.Done()
+growStack()
+}()
+wg.Wait()
+...
+}</code></pre><h3 id="基准测试"><a href="#基准测试" class="headerlink" title="基准测试"></a>基准测试</h3><p>性能测试函数以接收*testing.B类型为单一参数b，性能测试函数中需要循环b.N次调用被测函数。testing.B类型用来管理测试时间和迭代运行次数，也支持和testing.T相同的方式管理测试状态和格式化测试日志，不一样的是testing.B的日志总是会输出。<br>启用内存使用分析，使用b.ReportAllocs()</p><pre><code>func BenchmarkWriterFlush(b *testing.B) {
+b.ReportAllocs()
+bw := NewWriter(ioutil.Discard)
+str := strings.Repeat(&quot;x&quot;, 50)
+for i := 0; i &lt; b.N; i++ {
+bw.WriteString(str)
+bw.Flush()
+}
+}</code></pre><p>停止/重置/启动时间计值，使用b.StopTimer()、b.ResetTimer()、b.StartTimer()</p><pre><code>func BenchmarkScanInts(b *testing.B) {
+b.ResetTimer()
+ints := makeInts(intCount)
+var r RecursiveInt
+for i := b.N - 1; i &gt;= 0; i-- {
+buf := bytes.NewBuffer(ints)
+b.StartTimer()
+scanInts(&amp;r, buf)
+b.StopTimer()
+}
+}</code></pre><p>记录在一个操作中处理的字节数，使用b.SetBytes()</p><pre><code>func BenchmarkFields(b *testing.B) {
+b.SetBytes(int64(len(fieldsInput)))
+for i := 0; i &lt; b.N; i++ {
+Fields(fieldsInput)
+}
+}</code></pre><p>并发执行被测对象，使用b.RunParallel()和*testing.PB类型的Next()</p><pre><code>func BenchmarkValueRead(b *testing.B) {
+var v Value
+v.Store(new(int))
+b.RunParallel(func(pb *testing.PB) {
+ for pb.Next() {
+ x := v.Load().(*int)
+ if *x != 0 {
+  b.Fatalf(&quot;wrong value: got %v, want 0&quot;, *x)
+ }
+}
+})
+}</code></pre><h2 id="测试项"><a href="#测试项" class="headerlink" title="测试项"></a>测试项</h2><h3 id="测试覆盖率"><a href="#测试覆盖率" class="headerlink" title="测试覆盖率"></a>测试覆盖率</h3><p>输出覆盖率信息，增加-cover选项：</p><blockquote><p>go test -cover</p></blockquote><p>观察覆盖率详细信息，可以增加-coverprofile选型输出覆盖率文件，然后使用go tool cover输出覆盖率详细信息：</p><blockquote><p>go test -coverprofile cover.out</p></blockquote><p>如上-func选项输出函数覆盖率统计信息。也可通过-html按html格式输出：</p><blockquote><p>go tool cover -html cover.out</p></blockquote><p>注：<br>1.未覆盖到的代码以红色字体输出。<br>2.将鼠标移到代码块，可以看到具体的执行次数。</p><h3 id="查看内存分配统计"><a href="#查看内存分配统计" class="headerlink" title="查看内存分配统计"></a>查看内存分配统计</h3><p>增加测试代码：</p><pre><code>// 性能测试内存分配统计
+func BenchmarkBenchmem(b *testing.B) {
+for i := 0; i &lt; b.N; i++ {
+make([]int, i % 10 + 1)[0] = 0
+}
+}</code></pre><p>设置-benchmem查选项看性能测试函数平均内存分配情况：</p><blockquote><p>go test -bench Benchmem -benchmem</p></blockquote><p>上图显示BenchmarkBenchmem测试函数平均每次分配了27byte内存。<br>测试完成后查看内存分配情况：<br>增加选项-memprofile指定输出内存统计文件，设置-memprofilerate 1观察所有的内存分配。</p><blockquote><p>go test -bench . -memprofile mem.out -memprofilerate 1</p></blockquote><p>编译生成测试执行文件：</p><blockquote><p>go test -c</p></blockquote><p>通过pprof工具查看内存分配信息：</p><blockquote><p>go tool pprof -alloc_space -text demo.test.exe mem.out</p></blockquote><h3 id="查看CPU占用统计"><a href="#查看CPU占用统计" class="headerlink" title="查看CPU占用统计"></a>查看CPU占用统计</h3><p>通过-cpuprofile指定输出cpu统计信息文件：</p><blockquote><p>go test -bench . -cpuprofile cpu.out</p></blockquote><p>编译生成测试执行文件：</p><blockquote><p>go test -c</p></blockquote><p>使用pprof查看：</p><blockquote><p>go tool pprof -text demo.test.exe cpu.out</p></blockquote><h3 id="查看协程阻塞统计"><a href="#查看协程阻塞统计" class="headerlink" title="查看协程阻塞统计"></a>查看协程阻塞统计</h3><p>增加测试代码：</p><pre><code>// 协程阻塞profile
+func TestBlockprofile(t *testing.T) {
+c1 := make(chan int)
+go func() {
+&lt;- c1 // 阻塞
+}()
+go func() {
+&lt;- c1 // 阻塞
+}()
+time.Sleep(time.Millisecond)
+c1 &lt;- 0
+time.Sleep(time.Millisecond)
+c1 &lt;- 1
+time.Sleep(time.Millisecond)
+}</code></pre><p>输出阻塞信息文件，设置-blockprofilerate 1输出所有的阻塞事件：</p><blockquote><p>go test -run Blockprofile -blockprofile block.out -blockprofilerate 1</p></blockquote><p>编译生成测试执行文件：</p><blockquote><p>go test -c</p></blockquote><p>使用pprof查看：</p><blockquote><p>go tool pprof -text demo.test.exe block.out</p></blockquote><h3 id="并发执行功能测试"><a href="#并发执行功能测试" class="headerlink" title="并发执行功能测试"></a>并发执行功能测试</h3><p>增加测试代码：</p><pre><code>// 并发执行功能测试
+func TestParallel1(t *testing.T) { 
+t.Log(&quot;Not Parallel 1&quot;)
+}
+func TestParallel2(t *testing.T) {
+//调用了Parallel的测试函数将集中到一起并发执行
+t.Parallel()
+t.Log(&quot;Parallel 1&quot;)
+}
+func TestParallel3(t *testing.T) {
+t.Log(&quot;Not Parallel 2&quot;)
+}
+func TestParallel4(t *testing.T) {
+t.Parallel()
+t.Log(&quot;Parallel 2&quot;)
+}</code></pre><p>运行测试：</p><blockquote><p>go test -run Parallel -v</p></blockquote><h2 id="并发执行性能测试"><a href="#并发执行性能测试" class="headerlink" title="并发执行性能测试"></a>并发执行性能测试</h2><p>增加测试代码：</p><pre><code>// 并发执行性能测试
+func BenchmarkParallel1(b *testing.B) {// 设置了并发协程数
+b.SetParallelism(4) // 设置并发协程数为GOMAXPROCS的x倍
+b.RunParallel(func(pb *testing.PB) { // 创建多个协程并发执行
+for pb.Next() { // 调度器会将迭代分配到相应的协程中执行
+ time.Sleep(time.Millisecond * 100)
+}
+})
+}
+func BenchmarkParallel2(b *testing.B) { // 未设置并发协程数
+b.RunParallel(func(pb *testing.PB) {
+for pb.Next() {
+ time.Sleep(time.Millisecond * 100)
+}
+})
+}
+func BenchmarkParallel3(b *testing.B) { // 非并发执行
+for i := 0; i &lt; b.N; i++ {
+ time.Sleep(time.Millisecond * 100)
+}
+}</code></pre><p>运行测试：</p><blockquote><p>go test -bench Parallel<br>go test -bench Parallel -cpu 4</p></blockquote><p>注：<br>1.在单CPU时，未调用SetParallelism的与普通性能测试运行测试一样；设置-cpu 4之后，运行次数相对增多。<br>2.调用了SetParallelism运行次数比未调用的多。</p><h2 id="设置性能测试时间"><a href="#设置性能测试时间" class="headerlink" title="设置性能测试时间"></a>设置性能测试时间</h2><p>增加测试代码：</p><pre><code>// 性能测试时间
+func BenchmarkBenchtime(b *testing.B) {
+for i := 0; i &lt; b.N; i++ {
+ time.Sleep(time.Millisecond)
+}
+}</code></pre><p>设置性能测试函数执行时间：</p><blockquote><p>go test -bench Benchtime<br>go test -bench Benchtime -benchtime 10ms</p></blockquote><p>注：<br>1.默认时间为1s，运行了1000次，设置为10ms后，运行了10次。</p><h2 id="设置测试超时时间"><a href="#设置测试超时时间" class="headerlink" title="设置测试超时时间"></a>设置测试超时时间</h2><p>增加测试代码：</p><pre><code>// 测试超时
+func TestTimeout(t *testing.T) {
+time.Sleep(time.Second * 3)
+}</code></pre><p>设置超时时间为2秒，并运行测试：</p><blockquote><p>go test -run Timeout -timeout 2s -v</p></blockquote><h2 id="缩短耗时测试运行时间"><a href="#缩短耗时测试运行时间" class="headerlink" title="缩短耗时测试运行时间"></a>缩短耗时测试运行时间</h2><p>增加测试代码：</p><pre><code>// 缩短耗时测试运行时间
+func TestShort1(t *testing.T) {
+t.Log(&quot;Whether -short is set or not, run the test&quot;)
+}
+func TestShort2(t *testing.T) {
+if testing.Short() { //跳过耗时的测试
+t.Skip(&quot;-short is set, skip the time-consuming test&quot;)
+}
+// 耗时的测试
+t.Log(&quot;Run time-consuming test&quot;)
+time.Sleep(time.Second * 10)
+}</code></pre><p>运行测试：</p><blockquote><p>go test -run Short –v<br>go test -run Short -v -short</p></blockquote><h1 id="场景测试"><a href="#场景测试" class="headerlink" title="场景测试"></a>场景测试</h1><h2 id="IO测试"><a href="#IO测试" class="headerlink" title="IO测试"></a>IO测试</h2><p>testing/iotest包中实现了常用的出错的Reader和Writer:<br>a.触发数据错误dataErrReader，通过DataErrReader()函数创建<br>b.读取一半内容的halfReader，通过HalfReader()函数创建<br>c.读取一个byte的oneByteReader，通过OneByteReader()函数创建<br>d.触发超时错误的timeoutReader，通过TimeoutReader()函数创建<br>e.写入指定位数内容后停止的truncateWriter，通过TruncateWriter()函数创建<br>f.读取时记录日志的readLogger，通过NewReadLogger()函数创建<br>g.写入时记录日志writeLogger，通过NewWriteLogger()函数创建</p><h2 id="HTTP测试"><a href="#HTTP测试" class="headerlink" title="HTTP测试"></a>HTTP测试</h2><p>net/http/httptest包提供了HTTP相关代码的测试工具<br>httptest.Server用来构建临时的Server，测试发送与接收HTTP请求<br>httptest.ResponseRecorder用来记录应答</p><h2 id="黑盒测试"><a href="#黑盒测试" class="headerlink" title="黑盒测试"></a>黑盒测试</h2><p>testing/quick包实现了帮助黑盒测试<br>Check函数，测试的只返回bool值的黑盒函数f，Check会为f的每个参数设置任意<br>值并多次调用</p><pre><code>func TestOddMultipleOfThree(t *testing.T) {
+f := func(x int) bool {
+y := OddMultipleOfThree(x)
+return y%2 == 1 &amp;&amp; y%3 == 0
+}
+if err := quick.Check(f, nil); err != nil {
+t.Error(err)
+}
+}</code></pre><p>•CheckEqual函数，比较给定的两个黑盒函数是否相等<br>func CheckEqual(f, g interface{}, config *Config) (err error)</p><h2 id="白盒测试"><a href="#白盒测试" class="headerlink" title="白盒测试"></a>白盒测试</h2><p>白盒测试有访问包内部函数和数据结构的权限，因此可以做到一些普通客户端无法实现的测试。<br>下面的代码演示了为用户提供网络存储的web服务中的配额检测逻辑。当用户使用了超过90%的存储配额之后将发送提醒邮件。(译注：一般在实现业务机器监控，包括磁盘、cpu、网络等的时候，需要类似的到达阈值=&gt;触发报警的逻辑，所以是很实用的案例)</p><pre><code>gopl.io/ch11/storage1
+
+package storage
+
+import (
+&quot;fmt&quot;
+&quot;log&quot;
+&quot;net/smtp&quot;
+)
+
+func bytesInUse(username string) int64 { return 0 /* ... */ }
+
+// Email sender configuration.
+// NOTE: never put passwords in source code!
+const sender = &quot;notifications@example.com&quot;
+const password = &quot;correcthorsebatterystaple&quot;
+const hostname = &quot;smtp.example.com&quot;
+
+const template = `Warning: you are using %d bytes of storage,
+%d%% of your quota.`
+
+func CheckQuota(username string) {
+used := bytesInUse(username)
+const quota = 1000000000 // 1GB
+percent := 100 * used / quota
+if percent &lt; 90 {
+    return // OK
+}
+msg := fmt.Sprintf(template, used, percent)
+auth := smtp.PlainAuth(&quot;&quot;, sender, password, hostname)
+err := smtp.SendMail(hostname+&quot;:587&quot;, auth, sender,
+    []string{username}, []byte(msg))
+if err != nil {
+    log.Printf(&quot;smtp.SendMail(%s) failed: %s&quot;, username, err)
+}
+}</code></pre><p>我们想测试这段代码，但是我们并不希望发送真实的邮件。因此我们将邮件处理逻辑放到一个私有的notifyUser函数中。</p><pre><code>gopl.io/ch11/storage2
+
+var notifyUser = func(username, msg string) {
+auth := smtp.PlainAuth(&quot;&quot;, sender, password, hostname)
+err := smtp.SendMail(hostname+&quot;:587&quot;, auth, sender,
+    []string{username}, []byte(msg))
+if err != nil {
+    log.Printf(&quot;smtp.SendEmail(%s) failed: %s&quot;, username, err)
+}
+}
+
+func CheckQuota(username string) {
+used := bytesInUse(username)
+const quota = 1000000000 // 1GB
+percent := 100 * used / quota
+if percent &lt; 90 {
+    return // OK
+}
+msg := fmt.Sprintf(template, used, percent)
+notifyUser(username, msg)
+}</code></pre><p>现在我们可以在测试中用伪邮件发送函数替代真实的邮件发送函数。它只是简单记录要通知的用户和邮件的内容。</p><pre><code>package storage
+
+import (
+&quot;strings&quot;
+&quot;testing&quot;
+)
+func TestCheckQuotaNotifiesUser(t *testing.T) {
+var notifiedUser, notifiedMsg string
+notifyUser = func(user, msg string) {
+    notifiedUser, notifiedMsg = user, msg
+}
+
+// ...simulate a 980MB-used condition...
+
+const user = &quot;joe@example.org&quot;
+CheckQuota(user)
+if notifiedUser == &quot;&quot; &amp;&amp; notifiedMsg == &quot;&quot; {
+    t.Fatalf(&quot;notifyUser not called&quot;)
+}
+if notifiedUser != user {
+    t.Errorf(&quot;wrong user (%s) notified, want %s&quot;,
+        notifiedUser, user)
+}
+const wantSubstring = &quot;98% of your quota&quot;
+if !strings.Contains(notifiedMsg, wantSubstring) {
+    t.Errorf(&quot;unexpected notification message &lt;&lt;%s&gt;&gt;, &quot;+
+        &quot;want substring %q&quot;, notifiedMsg, wantSubstring)
+}</code></pre><p>}<br>这里有一个问题：当测试函数返回后，CheckQuota将不能正常工作，因为notifyUsers依然使用的是测试函数的伪发送邮件函数（当更新全局对象的时候总会有这种风险）。 我们必须修改测试代码恢复notifyUsers原先的状态以便后续其他的测试没有影响，要确保所有的执行路径后都能恢复，包括测试失败或panic异常的情形。在这种情况下，我们建议使用defer语句来延后执行处理恢复的代码。</p><pre><code>func TestCheckQuotaNotifiesUser(t *testing.T) {
+// Save and restore original notifyUser.
+saved := notifyUser
+defer func() { notifyUser = saved }()
+
+// Install the test&apos;s fake notifyUser.
+var notifiedUser, notifiedMsg string
+notifyUser = func(user, msg string) {
+    notifiedUser, notifiedMsg = user, msg
+}
+// ...rest of test...
+}</code></pre><p>这种处理模式可以用来暂时保存和恢复所有的全局变量，包括命令行标志参数、调试选项和优化参数；安装和移除导致生产代码产生一些调试信息的钩子函数；还有有些诱导生产代码进入某些重要状态的改变，比如超时、错误，甚至是一些刻意制造的并发行为等因素。</p><p>以这种方式使用全局变量是安全的，因为go test命令并不会同时并发地执行多个测试。<br>归纳：在编码时，应遵循一个函数一个功能的原则，将不同功能代码通过一个函数实现。<strong>上述测试代码中，为了便于测试，将发送邮件的代码放在一个单独的函数中，然后定义了一个函数变量，方便测试时替换发送邮件函数。</strong></p><h1 id="Mock函数"><a href="#Mock函数" class="headerlink" title="Mock函数"></a>Mock函数</h1><h2 id="数据库访问函数测试"><a href="#数据库访问函数测试" class="headerlink" title="数据库访问函数测试"></a>数据库访问函数测试</h2><h2 id="外部测试包"><a href="#外部测试包" class="headerlink" title="外部测试包"></a>外部测试包</h2><p>考虑下这两个包：net/url包，提供了URL解析的功能；net/http包，提供了web服务和HTTP客户端的功能。如我们所料，上层的net/http包依赖下层的net/url包。然后，net/url包中的一个测试是演示不同URL和HTTP客户端的交互行为，这样的行为在net/url包的测试代码中会导致包的循环依赖。</p><p>我们可以通过外部测试包的方式解决循环依赖的问题，也就是在net/url包所在的目录声明一个独立的url_test测试包。其中包名的_test后缀告诉go test工具它应该建立一个额外的包来运行测试。我们将这个外部测试包的导入路径视作是net/url_test会更容易理解，但实际上它并不能被其他任何包导入。</p><p>因为外部测试包是一个独立的包，所以能够导入那些依赖待测代码本身的其他辅助包；包内的测试代码就无法做到这点。在设计层面，外部测试包是在所有它依赖的包的上层。</p><p>通过避免循环的导入依赖，外部测试包可以更灵活地编写测试，特别是集成测试（需要测试多个组件之间的交互），可以像普通应用程序那样自由地导入其他包。</p><p>我们可以用go list命令查看包对应目录中哪些Go源文件是产品代码，哪些是包内测试，还有哪些是外部测试包。</p><h1 id="第三方测试框架"><a href="#第三方测试框架" class="headerlink" title="第三方测试框架"></a>第三方测试框架</h1><p>Golang测试除了使用内置的测试框架，还提供了许多优秀的第三方测试框架，框架详情查看另一篇文章：<a href="https://ciryu.github.io/2019/12/11/Golang-测试框架汇总/">Golang测试框架汇总</a></p><h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Golang测试使用Testing框架能满足大部分测试场景，但是存在样板式代码较多，结合第三方框架封装，可以避免写太多样板代码，推荐Testify框架。</p></div><div style="text-align:center;color:#ccc;font-size:14px">---------------- The End ----------------</div><div id="reward-container"><div>请评价该文章(满分10分)</div><button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">打赏</button><div id="qr" style="display:none"><div style="display:inline-block"><img src="/reward/reward_alipay.png" alt="Abel 支付宝"><p>支付宝</p></div><div style="display:inline-block"><img src="/reward/reward_wechat.png" alt="Abel 微信支付"><p>微信支付</p></div></div></div><div><ul class="post-copyright"><li class="post-copyright-author"><strong>本文作者： </strong>Abel</li><li class="post-copyright-link"><strong>本文链接：</strong> <a href="https://ciryu.github.io/blog/Golang-test.html" title="Golang测试总结">https://ciryu.github.io/blog/Golang-test.html</a></li><li class="post-copyright-license"><strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li></ul></div><footer class="post-footer"><div class="post-tags"><a href="/tags/编码/" rel="tag"><i class="fa fa-tag"></i> 编码</a> <a href="/tags/Golang/" rel="tag"><i class="fa fa-tag"></i> Golang</a></div><div class="post-widgets"><div class="wp_rating"><div id="wpac-rating"></div></div><div class="social-share"><div id="needsharebutton-postbottom"><span class="btn"><i class="fa fa-share-alt" aria-hidden="true"></i></span></div></div></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/blog/Golang-ru-he-you-ya-de-guan-bi-channel.html" rel="next" title="Golang:如何优雅的关闭channel"><i class="fa fa-chevron-left"></i> Golang:如何优雅的关闭channel</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"><a href="/blog/golang-timer.timer-he-ticker-de-di-ceng-shi-xian.html" rel="prev" title="timer.Timer和Ticker的底层实现">timer.Timer和Ticker的底层实现 <i class="fa fa-chevron-right"></i></a></div></div></footer></div></article></div></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span> <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span> <span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">文章目录</li><li class="sidebar-nav-overview" data-target="site-overview-wrap">站点概览</li></ul><div class="site-overview-wrap sidebar-panel"><div class="site-overview"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"><a href="/"><img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Abel"></a><p class="site-author-name" itemprop="name">Abel</p><div class="site-description motion-element" itemprop="description">我要，最狂的风，和最静的海</div></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"><a href="/archives/"><span class="site-state-item-count">66</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"><a href="/categories/"><span class="site-state-item-count">37</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"><a href="/tags/"><span class="site-state-item-count">51</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="feed-link motion-element"><a href="/atom.xml" rel="alternate"><i class="fa fa-rss"></i>RSS</a></div><div class="links-of-author motion-element"><span class="links-of-author-item"><a href="https://github.com/ciryu" title="GitHub &rarr; https://github.com/ciryu" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a> </span><span class="links-of-author-item"><a href="/helloyucx@163.com" title="E-Mail &rarr; helloyucx@163.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a></span></div></div></div><div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#摘-要："><span class="nav-number">1.</span> <span class="nav-text">摘 要：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Go内置单元测试框架Testing"><span class="nav-number">3.</span> <span class="nav-text">Go内置单元测试框架Testing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#命名约定"><span class="nav-number">3.1.</span> <span class="nav-text">命名约定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试示例"><span class="nav-number">3.2.</span> <span class="nav-text">测试示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试命令使用"><span class="nav-number">3.3.</span> <span class="nav-text">测试命令使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试类型"><span class="nav-number">3.4.</span> <span class="nav-text">测试类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#功能测试"><span class="nav-number">3.4.1.</span> <span class="nav-text">功能测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基准测试"><span class="nav-number">3.4.2.</span> <span class="nav-text">基准测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试项"><span class="nav-number">3.5.</span> <span class="nav-text">测试项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试覆盖率"><span class="nav-number">3.5.1.</span> <span class="nav-text">测试覆盖率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看内存分配统计"><span class="nav-number">3.5.2.</span> <span class="nav-text">查看内存分配统计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看CPU占用统计"><span class="nav-number">3.5.3.</span> <span class="nav-text">查看CPU占用统计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看协程阻塞统计"><span class="nav-number">3.5.4.</span> <span class="nav-text">查看协程阻塞统计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#并发执行功能测试"><span class="nav-number">3.5.5.</span> <span class="nav-text">并发执行功能测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#并发执行性能测试"><span class="nav-number">3.6.</span> <span class="nav-text">并发执行性能测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置性能测试时间"><span class="nav-number">3.7.</span> <span class="nav-text">设置性能测试时间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置测试超时时间"><span class="nav-number">3.8.</span> <span class="nav-text">设置测试超时时间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缩短耗时测试运行时间"><span class="nav-number">3.9.</span> <span class="nav-text">缩短耗时测试运行时间</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#场景测试"><span class="nav-number">4.</span> <span class="nav-text">场景测试</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IO测试"><span class="nav-number">4.1.</span> <span class="nav-text">IO测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP测试"><span class="nav-number">4.2.</span> <span class="nav-text">HTTP测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#黑盒测试"><span class="nav-number">4.3.</span> <span class="nav-text">黑盒测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#白盒测试"><span class="nav-number">4.4.</span> <span class="nav-text">白盒测试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mock函数"><span class="nav-number">5.</span> <span class="nav-text">Mock函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库访问函数测试"><span class="nav-number">5.1.</span> <span class="nav-text">数据库访问函数测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#外部测试包"><span class="nav-number">5.2.</span> <span class="nav-text">外部测试包</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三方测试框架"><span class="nav-number">6.</span> <span class="nav-text">第三方测试框架</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div></div></div></div></aside><div id="sidebar-dimmer"></div></div></main><footer id="footer" class="footer"><div class="footer-inner"><div class="copyright">&copy; 2019 – <span itemprop="copyrightYear">2020</span> <span class="with-love" id="animate"><i class="fa fa-heart"></i> </span><span class="author" itemprop="copyrightHolder">Abel</span> <span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-area-chart"></i> </span><span class="post-meta-item-text">站点总字数：</span> <span title="站点总字数">498k</span> <span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-coffee"></i> </span><span class="post-meta-item-text">站点阅读时长 &asymp;</span> <span title="站点阅读时长">7:32</span></div><div id="days"></div><script>function show_date_time(){window.setTimeout("show_date_time()",1e3),BirthDay=new Date("08/07/2019 21:13:14"),today=new Date,timeold=today.getTime()-BirthDay.getTime(),sectimeold=timeold/1e3,secondsold=Math.floor(sectimeold),msPerDay=864e5,e_daysold=timeold/msPerDay,daysold=Math.floor(e_daysold),e_hrsold=24*(e_daysold-daysold),hrsold=setzero(Math.floor(e_hrsold)),e_minsold=60*(e_hrsold-hrsold),minsold=setzero(Math.floor(60*(e_hrsold-hrsold))),seconds=setzero(Math.floor(60*(e_minsold-minsold))),document.getElementById("days").innerHTML="本站已安全运行"+daysold+"天"+hrsold+"小时"+minsold+"分"+seconds+"秒"}function setzero(e){return 10>e&&(e="0"+e),e}show_date_time()</script><div class="busuanzi-count"><script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span class="post-meta-item-icon"><i class="fa fa-user"></i> </span><span class="site-uv" title="总访客量"><span class="busuanzi-value" id="busuanzi_value_site_uv"></span> </span><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="site-pv" title="总访问量"><span class="busuanzi-value" id="busuanzi_value_site_pv"></span></span></div></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i> <span id="scrollpercent"><span>0</span>%</span></div><div id="needsharebutton-float"><span class="btn"><i class="fa fa-share-alt" aria-hidden="true"></i></span></div><script src="/lib/needsharebutton/needsharebutton.js"></script><script>pbOptions={},pbOptions.iconStyle="default",pbOptions.boxForm="horizontal",pbOptions.position="bottomCenter",pbOptions.networks="Weibo,Wechat,Douban,QQZone,Twitter,Facebook",new needShareButton("#needsharebutton-postbottom",pbOptions),flOptions={},flOptions.iconStyle="default",flOptions.boxForm="vertical",flOptions.position="topRight",flOptions.networks="Weibo,Wechat,Douban,QQZone,Twitter,Facebook",new needShareButton("#needsharebutton-float",flOptions)</script></div><script color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script><script src="/lib/jquery/index.js?v=3.4.1"></script><script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script><script src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script><script src="/js/affix.js?v=7.3.0"></script><script src="/js/schemes/pisces.js?v=7.3.0"></script><script src="/js/next-boot.js?v=7.3.0"></script><script>CONFIG.page.isPost&&(wpac_init=window.wpac_init||[],wpac_init.push({widget:"Rating",id:20399,el:"wpac-rating",color:"fc6423"}),function(){if(!("WIDGETPACK_LOADED"in window)){WIDGETPACK_LOADED=!0;var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src="//embed.widgetpack.com/widget.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t.nextSibling)}}())</script><script src="/js/local-search.js?v=7.3.0"></script><canvas class="fireworks" style="position:fixed;left:0;top:0;z-index:1;pointer-events:none"></canvas><script src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script><script async src="/js/src/explosion.min.js"></script><script src="/js/src/wobblewindow.js"></script><script>//只在桌面版网页启用特效
+    if( window.innerWidth > 768  ){
+      $(document).ready(function () {
+        
+          $('#header').wobbleWindow({
+            radius: 50,
+            movementTop: false,
+            movementLeft: false,
+            movementRight: false,
+            debug: false,
+          });
+        
+
+        
+          $('#sidebar').wobbleWindow({
+            radius: 50,
+            movementLeft: false,
+            movementTop: false,
+            movementBottom: false,
+            position: 'fixed',
+            debug: false,
+          });
+        
+
+        
+          $('#footer').wobbleWindow({
+            radius: 50,
+            movementBottom: false,
+            movementLeft: false,
+            movementRight: false,
+            offsetX: ,
+            position: 'absolute',
+            debug: false,
+          });
+        
+      });
+    }</script><script src="/js/src/activate-power-mode.min.js"></script><script>POWERMODE.colorful=!1,POWERMODE.shake=!1,document.body.addEventListener("input",POWERMODE)</script><script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script><script>NexT.utils.getScript("//unpkg.com/valine/dist/Valine.min.js",function(){var i=["nick","mail","link"],n="nick,mail,link";n=n.split(",").filter(function(n){return i.indexOf(n)>-1}),new Valine({el:"#comments",verify:!1,notify:!1,appId:"tRWhpiGm9oX7YMjYCB8FLxMt-gzGzoHsz",appKey:"IJfYdbLD4BwVVRqt5BlaqnL2",placeholder:"Just go go",avatar:"retro",meta:n,pageSize:"10",visitor:!1,lang:"zh-cn",path:location.pathname})},window.Valine)</script><script type="text/javascript" src="/js/love.js"></script></body></html><!-- rebuild by neat -->
